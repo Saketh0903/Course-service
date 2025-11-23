@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: courseservice-deployment
+  namespace: courseservice-ns
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: courseservice
+  template:
+    metadata:
+      labels:
+        app: courseservice
+    spec:
+      containers:
+      - name: courseservice-container
+        image: courseservice-image
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
