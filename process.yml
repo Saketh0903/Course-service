@@ -1,0 +1,29 @@
+version: 2
+jobs:
+  build_and_deploy:
+    docker:
+    - image: cimg/base:stable
+    steps:
+    - checkout
+    - run:
+        name: Build Image (Local Docker)
+        command: |
+          docker build -t courseservice-image:latest .
+          docker images
+    - run:
+        name: Use local kubeconfig
+        command: |
+          cp /root/.kube/config kubeconfig
+          echo "KUBECONFIG=$PWD/kubeconfig" >> $BASH_ENV
+    - run:
+        name: Deploy to Kubernetes
+        command: |
+          kubectl get nodes
+          kubectl apply -f deployment.yaml
+          kubectl apply -f service.yaml
+          kubectl apply -f namespace.yaml
+workflows:
+  build_deploy:
+    jobs:
+    - build_and_deploy
+  version: 2

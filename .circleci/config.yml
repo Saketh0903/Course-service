@@ -5,57 +5,30 @@ jobs:
     docker:
       - image: cimg/base:stable
 
-    environment:
-      APP_NAME: "courseservice"
-      IMAGE_NAME: "courseservice-image"
-      IMAGE_TAG: "latest"
-      REGISTRY: "docker.io"
-
     steps:
       - checkout
 
-      - setup_remote_docker
+      - run:
+          name: Build Image (Local Docker)
+          command: |
+            docker build -t courseservice-image:latest .
+            docker images
 
       - run:
-          name: Login to Docker Hub
+          name: Use local kubeconfig
           command: |
-            echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-
-      - run:
-          name: Build & Push Docker Image
-          command: |
-            FULL_IMAGE="$REGISTRY/$DOCKERHUB_USERNAME/$IMAGE_NAME:$IMAGE_TAG"
-            docker build -t "$FULL_IMAGE" .
-            docker push "$FULL_IMAGE"
-            echo "FULL_IMAGE=$FULL_IMAGE" >> $BASH_ENV
-
-      - run:
-          name: Install kubectl
-          command: |
-            sudo apt-get update
-            sudo apt-get install -y ca-certificates curl
-            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-            chmod +x kubectl
-            sudo mv kubectl /usr/local/bin/
-            kubectl version --client
-
-      - run:
-          name: Setup kubeconfig
-          command: |
-            echo "$KUBECONFIG_DATA" | base64 -d > kubeconfig
+            cp /root/.kube/config kubeconfig
             echo "KUBECONFIG=$PWD/kubeconfig" >> $BASH_ENV
 
       - run:
           name: Deploy to Kubernetes
           command: |
-            kubectl apply -f namespace.yaml --validate=false
-            kubectl apply -f deployment.yaml --validate=false
-            kubectl apply -f service.yaml --validate=false
+            kubectl get nodes
+            kubectl apply -f deployment.yaml
+            kubectl apply -f service.yaml
+            kubectl apply -f namespace.yaml
 
 workflows:
   build_deploy:
     jobs:
-      - build_and_deploy:
-          filters:
-            branches:
-              only: main
+      - build_and_deploy
