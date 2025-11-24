@@ -28,6 +28,16 @@ jobs:
             docker build -t "$FULL_IMAGE" .
             docker push "$FULL_IMAGE"
             echo "FULL_IMAGE=$FULL_IMAGE" >> $BASH_ENV
+      - run:
+        name: Install kubectl
+        command: |
+          sudo apt-get update
+          sudo apt-get install -y ca-certificates curl
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+          kubectl version --client
+
 
       - run:
           name: Setup kubeconfig
