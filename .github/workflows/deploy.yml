@@ -27,7 +27,7 @@ jobs:
           echo "KUBECONFIG=C:\\Users\\user\\.kube\\config" >> $env:GITHUB_ENV
 
       - name: Deploy to Kubernetes
-        shell: pwsh
+        shell: powershell
         run: |
           kubectl apply -f namespace.yaml --validate=false
           kubectl apply -f deployment.yaml --validate=false
